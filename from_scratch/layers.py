@@ -12,10 +12,11 @@ from operator import mul
 from functools import reduce
 
 from from_scratch.activations import sigmoid, relu, softmax,  activation_function
+from from_scratch.kernel_initializers import get_kernel_initializer, populate
 
 class Layer():
     """
-        Define the core of a layer
+    Define the ABC methods of a layer
     """
     def __init__(self, *args, **kwargs):
        self.input_shape = None
@@ -89,16 +90,15 @@ class Dense(Layer):
         if input_shape is not None:
             self.initialize(input_shape)
 
-    def initialize(self, input_shape):
+    def initialize(self, input_shape, weights_initializer='lecun_normal', biases_initializer='zeros'):
         if not isinstance(input_shape, tuple): input_shape = tuple(input_shape)
         assert len(input_shape) == 1
         self.input_shape = input_shape
         self.output_shape = (self.n_neurons,)
         self.input_neurons = input_shape[0]
 
-        limit = 1 / math.sqrt(self.input_neurons)
-        self.weights = np.random.uniform(-limit, limit, (self.input_neurons, self.n_neurons))
-        self.biases = np.zeros((1, self.n_neurons))
+        self.weights = populate(kernel_initializer=weights_initializer, shape=(self.input_neurons, self.n_neurons))
+        self.biases = populate(kernel_initializer=biases_initializer, shape=(1, self.n_neurons))
 
         self.parameters = reduce(mul, self.weights.shape) + reduce(mul, self.biases.shape)
         self.initialized = True
@@ -109,7 +109,7 @@ class Dense(Layer):
         self.compiled = True
 
     def forward(self, inputs):
-        assert self.compiled and self.initialized
+        assert self.compiled
 
         if not self.initialized:
             self.initialize(inputs.shape[1])
@@ -174,10 +174,10 @@ class Activation(Layer):
 
         if isinstance(activation, activation_function):
             self.activation = activation
-        elif activation in activation_functions_dict:
+        elif isinstance(activation, str) and activation in activation_functions_dict:
             self.activation = activation_functions_dict[activation]()
         else:
-            raise NotImplemented('Activation function %s not existing, choose within '%activation, activation_functions_dict.keys())
+            raise ValueError(f'Activation function {activation} not existing, choose within {activation_functions_dict.keys()}')
 
 
     def initialize(self, input_shape):

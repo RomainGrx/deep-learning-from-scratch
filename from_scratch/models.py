@@ -12,10 +12,15 @@ from from_scratch.utils import batch_iterator
 from from_scratch.layers import Activation
 
 class Model():
-    pass
+    def __init__(self, name=None):
+        self.name = name
+        self.input_shape = None
+        self.output_shape = None
+        self.nb_parameters = None
 
 class Sequential(Model):
-    def __init__(self, layers):
+    def __init__(self, layers, name=None):
+        super().__init__(name=name)
         self.initialized = False
         self.compiled = False
         self.input_shape = None
@@ -95,8 +100,8 @@ class Sequential(Model):
         for layer in self.layers:
             out_table.append(layer._summary_table())
             total_parameters += layer.parameters or 0
-        out = tabulate(out_table, headers=['Name', 'Input Shape', 'Output Shape', 'Nb Parameters'])
-        out += f'\n\nTotal parameters : {total_parameters}\n'
+        out = tabulate(out_table, headers=['Layer Name', 'Input Shape', 'Output Shape', 'Nb Parameters'], tablefmt='pretty') + '\n'
+        out += tabulate([[self.name, self.input_shape, self.output_shape, self.nb_parameters]], headers= ['Network Name', 'Input Shape', 'Output Shape', 'Parameters'], tablefmt='pretty')
         return out
 
     def __iter__(self):
