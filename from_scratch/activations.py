@@ -7,8 +7,6 @@
 
 import numpy as np
 
-
-
 class activation_function():
         def __init__(self):
                 self.inputs = None

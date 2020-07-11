@@ -6,7 +6,6 @@
 """
 
 import numpy as np
-import tensorflow as tf
 import matplotlib.pyplot as plt
 
 from from_scratch import layers, optimizers, models, losses
@@ -18,13 +17,13 @@ y = y + np.random.rand(*y.shape)/10
 
 
 model = models.Sequential([
-    layers.Dense(2, input_shape=(1,), activation='relu'),
-    layers.Dense(1)
+    layers.Dense(1, input_shape=(1,))
 ])
+
 
 model.compile(
     loss = losses.mse(),
-    optimizer = optimizers.sgd(lr=1e-5)
+    optimizer = optimizers.sgd(lr=1e-4, momentum=0.9)
 )
 
 history = model.fit(X, y, batch_size=512, epochs=2000)
