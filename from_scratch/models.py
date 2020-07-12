@@ -8,9 +8,8 @@ import time
 import numpy as np
 from tabulate import tabulate
 
-from from_scratch.utils import batch_iterator
+from from_scratch.utils import batch_iterator, types
 from from_scratch.layers import Activation
-from from_scratch.utils import input_to_numpy
 
 class Model():
     def __init__(self, name=None):
@@ -50,7 +49,7 @@ class Sequential(Model):
         self.layers = final_layers
         self.initialized = True
 
-    @input_to_numpy
+    @types(None, np.ndarray)
     def forward(self, x):
         if not self.initialized : self.initialize(inputs=x)
         for layer in self.layers:
@@ -58,7 +57,7 @@ class Sequential(Model):
         return x
 
     def backward(self, grad):
-        assert  self.compiled and self.initialized
+        assert self.compiled and self.initialized
         for layer in reversed(self.layers):
             grad = layer.backward(grad)
 
@@ -69,7 +68,7 @@ class Sequential(Model):
         self.backward(grad)
         return loss
 
-    @input_to_numpy
+    @types(None, np.ndarray, np.ndarray, int, int)
     def fit(self, X, y, batch_size=64, epochs=1):
         nb_batches = 'Unknown'
         losses = []

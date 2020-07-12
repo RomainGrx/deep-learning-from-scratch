@@ -6,6 +6,7 @@
 """
 import numpy as np
 from functools import wraps
+from collections.abc import Iterable
 
 def batch_iterator(X, y=None, batch_size=64):
     n = X.shape[0]
@@ -16,15 +17,38 @@ def batch_iterator(X, y=None, batch_size=64):
         else:
             yield X[start_idx:end_idx]
 
-def input_to_numpy(fun):
-    @wraps(fun)
-    def inner(*args, **kwargs):
-        for param in args:
-            if isinstance(param, list):
-                param = np.array(param)
-        for key, value in kwargs.items():
-            if isinstance(value, list):
-                kwargs[key] = np.array(value)
-        return fun(*args, **kwargs)
-    return inner
+def parametrized(dec):
+    def layer(*args, **kwargs):
+        def repl(f):
+            return dec(f, *args, **kwargs)
+        return repl
+    return layer
 
+@parametrized
+def types(fun, *types_args):
+    @wraps(fun)
+    def wrapper(*args, **kwargs):
+        idx = 0
+        args = list(args)
+        for type, arg in zip(types_args, args):
+            args[idx] = caster(arg, type)
+            idx += 1
+        for type, (key, value) in zip(tuple(types_args[idx:]), kwargs.items()):
+           kwargs[key] = caster(value, type)
+        args = tuple(args)
+        return fun(*args, **kwargs)
+    return wrapper
+
+def caster(arg, type):
+    if type == None:
+        pass
+    elif type == tuple:
+        if isinstance(arg, Iterable):
+            arg = tuple(arg)
+        else:
+            arg = tuple((arg,))
+    elif type == np.ndarray:
+        arg = np.array(arg)
+    elif not isinstance(arg, type):
+        arg = type(arg)
+    return arg

@@ -12,71 +12,12 @@ from operator import mul
 from functools import reduce
 from tabulate import tabulate
 
+from from_scratch.layers.core import Layer
 from from_scratch.activations import get_activation_function
 from from_scratch.kernel_initializers import get_kernel_initializer, populate_kernel
 
-class Layer():
-    """
-    Define the ABC methods of a layer
-    """
-    def __init__(self, *args, **kwargs):
-       self.input_shape = None
-       self.output_shape = None
-       self.parameters = None
-       self.activation = None
-       self.initialized = False
-       self.compiled = False
-
-    def layer_name(self):
-        """
-        :return: the name of the layer (default : class name)
-        """
-        return self.__class__.__name__
-
-    def initialize(self, *args, **kwargs):
-        """
-        Set all weights, biases and shape of the layer
-        :return: None
-        """
-        self.initialized = True
-
-    def compile(self, *args, **kwargs):
-        """
-        Set the optimizer to use for setting new weights
-        :return: None
-        """
-        self.compiled = True
-
-    def forward(self, x):
-        """
-        Forward propagation for the input x
-        :param x: input
-        :return: output of the layer with x as input
-        """
-        raise NotImplementedError()
-
-    def backward(self, grad):
-        """
-        Backward propagation used to compute the gradient of the layer
-        :param grad: gradient of the next layer
-        :return: the gradient of the layer
-        """
-        raise NotImplementedError()
-
-    def _summary_table(self):
-        """
-        Used to summary a model
-        :return: an array with the name, input shape, output shape and number of parameters of the layer
-        """
-        total_input_shape = (None,)+self.input_shape if self.input_shape else None
-        total_output_shape = (None,)+self.output_shape if self.output_shape else None
-        return [self.layer_name(), total_input_shape, total_output_shape, self.parameters]
-
-    def __str__(self):
-        return tabulate(self._summary_table(), headers=['Layer Name', 'Input Shape', 'Output Shape', 'Nb Parameters'], tablefmt='pretty')
-
 class Dense(Layer):
-    def __init__(self, n_neurons, input_shape=None, activation=None):
+    def __init__(self, n_neurons, weights_initializer='lecun_uniform', biases_initializer='zeros', activation=None, input_shape=None):
         super().__init__()
         self.input_neurons = None
         self.n_neurons = n_neurons
@@ -86,20 +27,22 @@ class Dense(Layer):
         self.inputs = None
         self.weights = None
         self.biases = None
+        self.weights_initializer = weights_initializer
+        self.biases_initializer = biases_initializer
         self.weights_optim = None
         self.biases_optim = None
         if input_shape is not None:
             self.initialize(input_shape)
 
-    def initialize(self, input_shape, weights_initializer='lecun_uniform', biases_initializer='zeros'):
+    def initialize(self, input_shape):
         if not isinstance(input_shape, tuple): input_shape = tuple(input_shape)
         assert len(input_shape) == 1
         self.input_shape = input_shape
         self.output_shape = (self.n_neurons,)
         self.input_neurons = input_shape[0]
 
-        self.weights = populate_kernel(kernel_initializer=weights_initializer, shape=(self.input_neurons, self.n_neurons))
-        self.biases = populate_kernel(kernel_initializer=biases_initializer, shape=(1, self.n_neurons))
+        self.weights = populate_kernel(kernel_initializer=self.weights_initializer, shape=(self.input_neurons, self.n_neurons))
+        self.biases = populate_kernel(kernel_initializer=self.biases_initializer, shape=(1, self.n_neurons))
 
         self.parameters = reduce(mul, self.weights.shape) + reduce(mul, self.biases.shape)
         self.initialized = True
@@ -109,12 +52,12 @@ class Dense(Layer):
         self.biases_optim = copy(optimizer)
         self.compiled = True
 
-    def forward(self, inputs):
+    def forward(self, x):
         if not self.initialized:
-            self.initialize(inputs.shape[1])
+            self.initialize(x.shape[1])
 
-        self.inputs = inputs
-        self.output = np.matmul(inputs, self.weights) + self.biases
+        self.inputs = x
+        self.output = np.matmul(x, self.weights) + self.biases
         return self.output
 
     def backward(self, grad):
@@ -122,7 +65,7 @@ class Dense(Layer):
 
         grad_inputs = np.matmul(grad, self.weights.T)
         grad_weights = np.matmul(self.inputs.T, grad)
-        grad_biases = np.mean(grad, axis=0, keepdims=True)
+        grad_biases = np.sum(grad, axis=0, keepdims=True)
 
         self.weights = self.weights_optim.update(self.weights, grad_weights)
         self.biases = self.biases_optim.update(self.biases, grad_biases)

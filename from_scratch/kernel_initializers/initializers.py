@@ -67,15 +67,14 @@ class variance_scaling(kernel_initializer):
         self.seed = seed
 
     def __call__(self, shape):
-        assert len(shape) == 2
         assert self.mode in available_modes and self.distribution in available_distributions
         np.random.seed(self.seed)
         if self.mode == 'fan_in':
             n = shape[0]
         elif self.mode == 'fan_out':
-            n = shape[1]
+            n = shape[-1]
         elif self.mode == 'fan_avg':
-            n = np.mean(shape)
+            n = (shape[0] + shape[-1])/2
         if self.distribution == 'normal':
             population = np.random.normal(loc=0.0, scale=math.sqrt(self.scale/n), size=shape)
         elif self.distribution == 'uniform':
