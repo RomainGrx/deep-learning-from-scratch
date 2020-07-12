@@ -88,13 +88,6 @@ class Sequential(Model):
             print()
         return {'loss':np.array(losses), 'epochs':np.arange(epochs)}
 
-    def _old_summary(self):
-        out_format = '{:<18}' * 4 + '\n'
-        out = out_format.format('Name', 'Input shape', 'Output shape', 'Nb parameters')
-        for layer in self.layers:
-            out += str(layer, out_format)
-        return out
-
     def summary(self):
         total_parameters = 0
         out_table = []
@@ -102,7 +95,8 @@ class Sequential(Model):
             out_table.append(layer._summary_table())
             total_parameters += layer.parameters or 0
         out = tabulate(out_table, headers=['Layer Name', 'Input Shape', 'Output Shape', 'Nb Parameters'], tablefmt='pretty') + '\n'
-        out += tabulate([[self.name, self.input_shape, self.output_shape, self.nb_parameters]], headers= ['Network Name', 'Input Shape', 'Output Shape', 'Parameters'], tablefmt='pretty')
+        #out += tabulate([[self.name, self.input_shape, self.output_shape, self.nb_parameters]], headers= ['Network Name', 'Input Shape', 'Output Shape', 'Parameters'], tablefmt='pretty')
+        out += f'Total parameters : {total_parameters}'
         return out
 
     def __iter__(self):

@@ -10,9 +10,10 @@ import numpy  as np
 from copy import copy
 from operator import mul
 from functools import reduce
+from tabulate import tabulate
 
-from from_scratch.activations import sigmoid, relu, softmax,  activation_function
-from from_scratch.kernel_initializers import get_kernel_initializer, populate
+from from_scratch.activations import get_activation_function
+from from_scratch.kernel_initializers import get_kernel_initializer, populate_kernel
 
 class Layer():
     """
@@ -65,14 +66,14 @@ class Layer():
     def _summary_table(self):
         """
         Used to summary a model
-        :return: an array with the name, input shape, output shape and number of parameters
+        :return: an array with the name, input shape, output shape and number of parameters of the layer
         """
         total_input_shape = (None,)+self.input_shape if self.input_shape else None
         total_output_shape = (None,)+self.output_shape if self.output_shape else None
         return [self.layer_name(), total_input_shape, total_output_shape, self.parameters]
 
-    def __str__(self, out_format='{:>12}'*4+'\n'):
-        return out_format.format(self.layer_name(), self.input_shape, self.output_shape, self.parameters)
+    def __str__(self):
+        return tabulate(self._summary_table(), headers=['Layer Name', 'Input Shape', 'Output Shape', 'Nb Parameters'], tablefmt='pretty')
 
 class Dense(Layer):
     def __init__(self, n_neurons, input_shape=None, activation=None):
@@ -97,8 +98,8 @@ class Dense(Layer):
         self.output_shape = (self.n_neurons,)
         self.input_neurons = input_shape[0]
 
-        self.weights = populate(kernel_initializer=weights_initializer, shape=(self.input_neurons, self.n_neurons))
-        self.biases = populate(kernel_initializer=biases_initializer, shape=(1, self.n_neurons))
+        self.weights = populate_kernel(kernel_initializer=weights_initializer, shape=(self.input_neurons, self.n_neurons))
+        self.biases = populate_kernel(kernel_initializer=biases_initializer, shape=(1, self.n_neurons))
 
         self.parameters = reduce(mul, self.weights.shape) + reduce(mul, self.biases.shape)
         self.initialized = True
@@ -152,13 +153,6 @@ class Flatten(Layer):
     def backward(self, grad):
         return grad.reshape((self.batch_size,) + self.input_shape)
 
-
-activation_functions_dict = {
-    'relu':relu,
-    'sigmoid':sigmoid,
-    'softmax':softmax
-}
-
 class Activation(Layer):
     def __init__(self, activation, input_shape=None):
         super().__init__()
@@ -168,13 +162,7 @@ class Activation(Layer):
         if input_shape is not None:
             self.initialize(input_shape)
 
-        if isinstance(activation, activation_function):
-            self.activation = activation
-        elif isinstance(activation, str) and activation in activation_functions_dict:
-            self.activation = activation_functions_dict[activation]()
-        else:
-            raise ValueError(f'Activation function {activation} not existing, choose within {activation_functions_dict.keys()}')
-
+        self.activation = get_activation_function(activation)
 
     def initialize(self, input_shape):
         if not isinstance(input_shape, tuple):
@@ -183,7 +171,6 @@ class Activation(Layer):
 
         self.parameters = 0
         self.initialized = True
-
 
     def forward(self, x):
         if not self.initialized : self.initialize(tuple(x[1:]))

@@ -7,7 +7,7 @@
 
 from .initializers import *
 
-def populate(kernel_initializer, shape):
+def populate_kernel(kernel_initializer, shape):
     kernel_initializer = get_kernel_initializer(kernel_initializer)
     return kernel_initializer(shape=shape)
 
