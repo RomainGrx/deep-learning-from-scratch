@@ -10,6 +10,7 @@ from tabulate import tabulate
 
 from from_scratch.utils import batch_iterator
 from from_scratch.layers import Activation
+from from_scratch.utils import input_to_numpy
 
 class Model():
     def __init__(self, name=None):
@@ -17,18 +18,16 @@ class Model():
         self.input_shape = None
         self.output_shape = None
         self.nb_parameters = None
+        self.compiled = False
+        self.initialized = False
 
 class Sequential(Model):
     def __init__(self, layers, name=None):
         super().__init__(name=name)
-        self.initialized = False
-        self.compiled = False
-        self.input_shape = None
-        self.input = None
         self.loss_function = None
         self.layers = layers
         self.input_layer = layers[0]
-        if layers[0].input_shape is not None:
+        if self.input_layer.input_shape is not None:
             self.initialize()
 
     def compile(self, loss, optimizer, metrics=None):
@@ -38,8 +37,8 @@ class Sequential(Model):
         self.metrics = metrics
         self.compiled = True
 
-    def initialize(self):
-        self.input_shape = self.input_layer.input_shape
+    def initialize(self, inputs=None):
+        self.input_shape = self.input_layer.input_shape or inputs.shape[1:]
         prev_input_shape = self.input_shape
         final_layers = []
         for layer in self.layers:
@@ -51,14 +50,15 @@ class Sequential(Model):
         self.layers = final_layers
         self.initialized = True
 
+    @input_to_numpy
     def forward(self, x):
-        if x is not isinstance(x, np.ndarray) : x = np.array(x)
-        self.input = x
+        if not self.initialized : self.initialize(inputs=x)
         for layer in self.layers:
             x = layer.forward(x)
         return x
 
     def backward(self, grad):
+        assert  self.compiled and self.initialized
         for layer in reversed(self.layers):
             grad = layer.backward(grad)
 
@@ -69,6 +69,7 @@ class Sequential(Model):
         self.backward(grad)
         return loss
 
+    @input_to_numpy
     def fit(self, X, y, batch_size=64, epochs=1):
         nb_batches = 'Unknown'
         losses = []

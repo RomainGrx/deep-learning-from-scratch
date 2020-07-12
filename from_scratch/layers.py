@@ -90,7 +90,7 @@ class Dense(Layer):
         if input_shape is not None:
             self.initialize(input_shape)
 
-    def initialize(self, input_shape, weights_initializer='lecun_normal', biases_initializer='zeros'):
+    def initialize(self, input_shape, weights_initializer='lecun_uniform', biases_initializer='zeros'):
         if not isinstance(input_shape, tuple): input_shape = tuple(input_shape)
         assert len(input_shape) == 1
         self.input_shape = input_shape
@@ -109,12 +109,8 @@ class Dense(Layer):
         self.compiled = True
 
     def forward(self, inputs):
-        assert self.compiled
-
         if not self.initialized:
             self.initialize(inputs.shape[1])
-        else:
-            assert self.input_shape == (inputs.shape[1],)
 
         self.inputs = inputs
         self.output = np.matmul(inputs, self.weights) + self.biases
