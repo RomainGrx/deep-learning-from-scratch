@@ -43,8 +43,11 @@ class Sequential(Model):
         for layer in self.layers:
             final_layers.append(layer)
             layer.initialize(prev_input_shape)
+            # If we find an activation in a layer, append as an Activation layer
             if layer.activation is not None:
-                final_layers.append(Activation(layer.activation))
+                act = Activation(layer.activation)
+                act.initialize(layer.output_shape)
+                final_layers.append(act)
             prev_input_shape = layer.output_shape
         self.layers = final_layers
         self.initialized = True
