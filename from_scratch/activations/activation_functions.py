@@ -22,10 +22,9 @@ class activation_function():
 
 class sigmoid(activation_function):
         def activate(self, x):
-                return 1 / (1 + np.exp(x))
+                return 1 / (1 + np.exp(-x))
         def gradient(self, x):
-                sig = self(x)
-                return sig * (1 - sig)
+                return np.exp(-x) / (1 + np.exp(-x))**2
 class relu(activation_function):
         def activate(self, x):
                 return np.maximum(x, 0, x)
