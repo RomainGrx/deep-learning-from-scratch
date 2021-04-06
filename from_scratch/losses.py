@@ -3,7 +3,7 @@
 """
 @author : Romain Graux
 @date : 2020 Jul 09
-@last modified : 2021 Apr 06, 17:12:52
+@last modified : 2021 Apr 06, 17:46:29
 """
 import numpy as np
 
@@ -32,7 +32,6 @@ class MSE(Loss):
 
 class Crossentropy(Loss):
     def loss(self, y, y_hat):
-        print(y.shape, y_hat.shape)
         y_hat = np.clip(y_hat, 1e-15, 1 - 1e-15)
         return -y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)
 

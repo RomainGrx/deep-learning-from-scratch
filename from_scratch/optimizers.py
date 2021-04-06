@@ -2,12 +2,18 @@
 # -*- coding: utf-8 -*-
 """
 @author : Romain Graux 
-@date : 09 July 2020 
+@date : 2020 Jul 09
+@last modified : 2021 Apr 06, 17:52:27
 """
 
 import numpy as np
 
-class sgd():
+class Optimizer:
+    def update(self, *args, **kwargs):
+        abstract
+
+
+class StochasticGradientDescent(Optimizer):
     def __init__(self, lr, momentum=0):
         self.lr = lr
         self.momentum = momentum
@@ -19,3 +25,7 @@ class sgd():
 
         self.cur_w = self.momentum * self.cur_w + (1 - self.momentum) * grad_w
         return w - self.lr * self.cur_w
+
+class GradientDescent(StochasticGradientDescent):
+    def __init__(self, lr):
+        super().__init__(lr, momentum=0)
