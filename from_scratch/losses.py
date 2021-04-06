@@ -3,7 +3,7 @@
 """
 @author : Romain Graux
 @date : 2020 Jul 09
-@last modified : 2021 Apr 06, 16:12:56
+@last modified : 2021 Apr 06, 17:12:52
 """
 import numpy as np
 
@@ -31,13 +31,14 @@ class MSE(Loss):
 
 
 class Crossentropy(Loss):
-    def loss(self, y, p):
-        p = np.clip(p, 1e-15, 1 - 1e-15)
-        return -y * np.log(p) - (1 - y) * np.log(1 - p)
+    def loss(self, y, y_hat):
+        print(y.shape, y_hat.shape)
+        y_hat = np.clip(y_hat, 1e-15, 1 - 1e-15)
+        return -y * np.log(y_hat) - (1 - y) * np.log(1 - y_hat)
 
-    def gradient(self, y, p):
-        p += 1e-15
-        return -(y / p) + (1 - y) / (1 - p)
+    def gradient(self, y, y_hat):
+        y_hat += 1e-15
+        return -(y / y_hat) + (1 - y) / (1 - y_hat)
 
 
 class SparseCrossentropy(Loss):

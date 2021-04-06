@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 @author : Romain Graux 
-@date : 09 July 2020 
+@date : 2020 Jul 09
+@last modified : 2021 Apr 06, 17:20:33
 """
 import time
 import numpy as np
@@ -11,7 +12,8 @@ from tabulate import tabulate
 from from_scratch.utils import batch_iterator, types
 from from_scratch.layers import Activation
 
-class Model():
+
+class Model:
     def __init__(self, name=None):
         self.name = name
         self.input_shape = None
@@ -19,6 +21,7 @@ class Model():
         self.nb_parameters = None
         self.compiled = False
         self.initialized = False
+
 
 class Sequential(Model):
     def __init__(self, layers, name=None):
@@ -54,7 +57,8 @@ class Sequential(Model):
 
     @types(None, np.ndarray)
     def forward(self, x):
-        if not self.initialized : self.initialize(inputs=x)
+        if not self.initialized:
+            self.initialize(inputs=x)
         for layer in self.layers:
             x = layer.forward(x)
         return x
@@ -73,7 +77,7 @@ class Sequential(Model):
 
     @types(None, np.ndarray, np.ndarray, int, int)
     def fit(self, X, y, batch_size=64, epochs=1):
-        nb_batches = 'Unknown'
+        nb_batches = "Unknown"
         losses = []
         for epoch in range(epochs):
             batch_loss = []
@@ -84,11 +88,14 @@ class Sequential(Model):
                 batch_loss.append(loss)
                 mean_batch_loss = np.mean(batch_loss)
                 idx_batch += 1
-                print(f'Epoch {epoch+1}/{epochs} : batch {idx_batch}/{nb_batches} : loss {mean_batch_loss:.3E}', end='\r')
+                print(
+                    f"Epoch {epoch+1}/{epochs} : batch {idx_batch}/{nb_batches} : loss {mean_batch_loss:.3E}",
+                    end="\r",
+                )
             losses.append(mean_batch_loss)
             nb_batches = idx_batch
             print()
-        return {'loss':np.array(losses), 'epochs':np.arange(epochs)}
+        return {"loss": np.array(losses), "epochs": np.arange(epochs)}
 
     def summary(self):
         total_parameters = 0
@@ -96,9 +103,16 @@ class Sequential(Model):
         for layer in self.layers:
             out_table.append(layer._summary_table())
             total_parameters += layer.parameters or 0
-        out = tabulate(out_table, headers=['Layer Name', 'Input Shape', 'Output Shape', 'Nb Parameters'], tablefmt='pretty') + '\n'
-        #out += tabulate([[self.name, self.input_shape, self.output_shape, self.nb_parameters]], headers= ['Network Name', 'Input Shape', 'Output Shape', 'Parameters'], tablefmt='pretty')
-        out += f'Total parameters : {total_parameters}'
+        out = (
+            tabulate(
+                out_table,
+                headers=["Layer Name", "Input Shape", "Output Shape", "Nb Parameters"],
+                tablefmt="pretty",
+            )
+            + "\n"
+        )
+        # out += tabulate([[self.name, self.input_shape, self.output_shape, self.nb_parameters]], headers= ['Network Name', 'Input Shape', 'Output Shape', 'Parameters'], tablefmt='pretty')
+        out += f"Total parameters : {total_parameters}"
         return out
 
     def __iter__(self):
