@@ -3,7 +3,7 @@
 """
 @author : Romain Graux
 @date : 2020 Jul 09
-@last modified : 2021 Apr 06, 16:03:00
+@last modified : 2021 Apr 06, 16:12:56
 """
 import numpy as np
 
@@ -22,7 +22,7 @@ class Loss:
         raise NotImplementedError()
 
 
-class MSE(loss):
+class MSE(Loss):
     def loss(self, y, y_hat):
         return 0.5 * np.power(y - y_hat, 2)
 
@@ -30,7 +30,7 @@ class MSE(loss):
         return y_hat - y
 
 
-class Crossentropy(loss):
+class Crossentropy(Loss):
     def loss(self, y, p):
         p = np.clip(p, 1e-15, 1 - 1e-15)
         return -y * np.log(p) - (1 - y) * np.log(1 - p)
@@ -40,7 +40,7 @@ class Crossentropy(loss):
         return -(y / p) + (1 - y) / (1 - p)
 
 
-class SparseCrossentropy(loss):
+class SparseCrossentropy(Loss):
     def loss(self, y, p):
         y_one_hot = np.zeros_like(p)
         y_one_hot[np.arange(len(y)), y] = 1
