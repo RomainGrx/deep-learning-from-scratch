@@ -3,7 +3,7 @@
 """
 @author : Romain Graux 
 @date : 2020 Jul 09
-@last modified : 2021 Apr 06, 17:20:33
+@last modified : 2021 Apr 06, 19:29:24
 """
 import time
 import numpy as np
@@ -76,7 +76,7 @@ class Sequential(Model):
         return loss
 
     @types(None, np.ndarray, np.ndarray, int, int)
-    def fit(self, X, y, batch_size=64, epochs=1):
+    def fit(self, X, y, batch_size=64, epochs=1, verbose=1):
         nb_batches = "Unknown"
         losses = []
         for epoch in range(epochs):
@@ -88,13 +88,14 @@ class Sequential(Model):
                 batch_loss.append(loss)
                 mean_batch_loss = np.mean(batch_loss)
                 idx_batch += 1
-                print(
-                    f"Epoch {epoch+1}/{epochs} : batch {idx_batch}/{nb_batches} : loss {mean_batch_loss:.3E}",
-                    end="\r",
-                )
+                if verbose == 1:
+                    print(
+                        f"Epoch {epoch+1}/{epochs} : batch {idx_batch}/{nb_batches} : loss {mean_batch_loss:.3E}",
+                        end="\r",
+                    )
             losses.append(mean_batch_loss)
             nb_batches = idx_batch
-            print()
+            if verbose == 1: print()
         return {"loss": np.array(losses), "epochs": np.arange(epochs)}
 
     def summary(self):
